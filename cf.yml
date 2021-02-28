@@ -45,6 +45,14 @@ Parameters:
     Description: (Optional - An empty value disables this feature) If you have a hosted zone in Route 53 and wish to set a DNS record whenever your Minecraft instance starts, supply the name of the record here (e.g. minecraft.mydomain.com).
     Default: ''
 
+  MinecraftDockerImage:
+    Type: String
+    Description: "Select either Vanilla or Bedrock version of Minecraft docker image"
+    Default: 'minecraft-server'
+    AllowedValues: 
+    - minecraft-server
+    - minecraft-bedrock-server
+
   MinecraftImageTag:
     Type: String
     Description: "Java version (Examples include latest, adopt13, openj9, etc) Refer to tag descriptions available here: https://github.com/itzg/docker-minecraft-server)"
@@ -81,6 +89,7 @@ Metadata:
       - Label:
           default: Server Settings
         Parameters:
+        - MinecraftDockerImage
         - MinecraftImageTag
       - Label:
           default: Optional Server Settings
@@ -106,6 +115,8 @@ Metadata:
         default: "Which instance type? You must make sure this is available in your region! https://aws.amazon.com/ec2/pricing/on-demand/"
       SpotPrice:
         default: "Maximum spot price per hour? Leave blank to disable spot pricing."
+      MinecraftDockerImage:
+        default: "Which version of Minecraft? Vanilla or Bedrock?"
       MinecraftImageTag:
         default: "Which version of Minecraft do you want to launch?"
       MinecraftTypeTag:
@@ -134,6 +145,7 @@ Conditions:
   IpAddressProvided: !Not [ !Equals [ !Ref YourIp, '' ] ]
   DnsConfigEnabled: !And [ !Not [ !Equals [ !Ref HostedZoneId, '' ] ], !Not [ !Equals [ !Ref RecordName, '' ] ] ]
   SpotPriceProvided: !Not [ !Equals [ !Ref SpotPrice, '' ] ]
+  MinecraftBedrock: !Equals [!Ref MinecraftDockerImage, 'minecraft-bedrock-server']
 
 
 Mappings:
@@ -263,9 +275,9 @@ Resources:
           IpProtocol: tcp
           CidrIp: !Sub "${YourIp}/32"
         - !Ref 'AWS::NoValue'
-      - FromPort: 25565
-        ToPort: 25565
-        IpProtocol: tcp
+      - FromPort: !If [MinecraftBedrock, 19132, 25565]
+        ToPort: !If [MinecraftBedrock, 19132, 25565]
+        IpProtocol: !If [MinecraftBedrock, udp, tcp]
         CidrIp: 0.0.0.0/0
       VpcId: !Ref Vpc
 
@@ -360,11 +372,11 @@ Resources:
       ContainerDefinitions:      
         - Name: minecraft
           MemoryReservation: 1024
-          Image: !Sub "itzg/minecraft-server:${MinecraftImageTag}"
+          Image: !Sub "itzg/${MinecraftDockerImage}:${MinecraftImageTag}"
           PortMappings:
-          - ContainerPort: 25565
-            HostPort: 25565
-            Protocol: tcp
+          - ContainerPort: !If [MinecraftBedrock, 19132, 25565]
+            HostPort: !If [MinecraftBedrock, 19132, 25565]
+            Protocol: !If [MinecraftBedrock, udp, tcp]
           MountPoints:
           - ContainerPath: /data
             SourceVolume: minecraft

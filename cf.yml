@@ -72,6 +72,14 @@ Parameters:
     Description: Examples include peaceful, easy (default), normal, and hard
     Default: ''
 
+  AllowCheats:
+    Type: String
+    Description: "'true' means enabled"
+    Default: 'false'
+    AllowedValues:
+    - true
+    - false
+
   Whitelist:
     Type: String
     Description: Usernames of your friends
@@ -97,6 +105,7 @@ Metadata:
         - MinecraftTypeTag
         - AdminPlayerNames
         - Difficulty
+        - AllowCheats
         - Whitelist
       - Label: 
           default: Optional Remote Access (SSH) Configuration
@@ -125,6 +134,8 @@ Metadata:
         default: "A comma delimited list (no spaces) of player names to be admins"
       Difficulty:
         default: "Which difficulty?"
+      AllowCheats:
+        default: "Allow cheats?"
       Whitelist:
         default: "A comma delimited list (no spaces) of player names"
       KeyPairName:
@@ -140,13 +151,13 @@ Conditions:
   MinecraftTypeTagProvided: !Not [ !Equals [ !Ref MinecraftTypeTag, '' ] ]
   AdminPlayerNamesProvided: !Not [ !Equals [ !Ref AdminPlayerNames, '' ] ]
   DifficultyProvided: !Not [ !Equals [ !Ref Difficulty, '' ] ]
+  AllowCheats: !Not [ !Equals [ !Ref AllowCheats, '' ] ]
   WhitelistProvided: !Not [ !Equals [ !Ref Whitelist, '' ] ]
   KeyPairNameProvided: !Not [ !Equals [ !Ref KeyPairName, '' ] ]
   IpAddressProvided: !Not [ !Equals [ !Ref YourIp, '' ] ]
   DnsConfigEnabled: !And [ !Not [ !Equals [ !Ref HostedZoneId, '' ] ], !Not [ !Equals [ !Ref RecordName, '' ] ] ]
   SpotPriceProvided: !Not [ !Equals [ !Ref SpotPrice, '' ] ]
   MinecraftBedrock: !Equals [!Ref MinecraftDockerImage, 'minecraft-bedrock-server']
-
 
 Mappings:
   ServerState:
@@ -398,6 +409,11 @@ Resources:
               - DifficultyProvided
               - Name: "DIFFICULTY"
                 Value: !Sub "${Difficulty}"
+              - !Ref 'AWS::NoValue'
+            - !If
+              - AllowCheats
+              - Name: "ALLOW_CHEATS"
+                Value: !Sub "${AllowCheats}"
               - !Ref 'AWS::NoValue'
             - !If
               - WhitelistProvided

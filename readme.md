@@ -58,6 +58,16 @@ Every time your Minecraft server starts it'll have a new public IP address. This
 
 ## FAQ
 
+**How do I get my XUID for Bedrock server operator?**
+
+To add yourself or another player admin (OP) you need to know its xuid (Xbox Live ID).
+If you don't know the xuid here are the steps to follow:
+
+1. Signup on https://xboxapi.com/register and chose the free plan
+1. Validate your registration then click on "Signin to Xbox Live"
+1. Once connected go to https://xapi.us/v2/xuid/GAMER_TAG and replace GAMER_TAG by the player's gamer tag
+1. Its xuid should now be displayed, copy it.
+
 **Do I need a VPC, or Subnets, or other networking config in AWS?** 
 
 Nope. The stack creates everything you need.
